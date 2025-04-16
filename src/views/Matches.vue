@@ -8,26 +8,18 @@
           </v-card-title>
           <v-card-text class="d-flex align-center">
             <matches-status-select />
-            <game-mode-select
-              :disabledModes="disabledGameModes"
-              :gameMode="gameMode"
-              @gameModeChanged="gameModeChanged"
-            ></game-mode-select>
+            <game-mode-select :disabledModes="disabledGameModes" :gameMode="gameMode"
+              @gameModeChanged="gameModeChanged"></game-mode-select>
             <map-select @mapChanged="mapChanged" :mapInfo="maps" :map="map"></map-select>
             <mmr-select v-if="unfinished" @mmrChanged="mmrChanged" :mmr="mmr"></mmr-select>
             <sort-select v-if="unfinished"></sort-select>
             <season-select v-if="!unfinished" @seasonSelected="selectSeason"></season-select>
-            <hero-icon-toggle :showHeroes="showHeroIcons" @update:showHeroes="showHeroIcons = $event" :unfinished="unfinished" />
+            <hero-select v-if="!unfinished" @heroChanged="heroChanged" :hero="hero"></hero-select>
+            <hero-icon-toggle :showHeroes="showHeroIcons" @update:showHeroes="showHeroIcons = $event"
+              :unfinished="unfinished" />
           </v-card-text>
-          <matches-grid
-            v-model="matches"
-            :totalMatches="totalMatches"
-            @pageChanged="onPageChanged"
-            :itemsPerPage="50"
-            :unfinished="unfinished"
-            :is-player-profile="false"
-            :showHeroes="showHeroIcons"
-          ></matches-grid>
+          <matches-grid v-model="matches" :totalMatches="totalMatches" @pageChanged="onPageChanged" :itemsPerPage="50"
+            :unfinished="unfinished" :is-player-profile="false" :showHeroes="showHeroIcons"></matches-grid>
         </v-card>
       </v-col>
     </v-row>
@@ -52,8 +44,11 @@ import { useRankingStore } from "@/store/ranking/store";
 import { useMatchStore } from "@/store/match/store";
 import { MapInfo } from "@/store/common/types";
 import SeasonSelect from "@/components/common/SeasonSelect.vue";
+import HeroSelect from "@/components/matches/HeroSelect.vue";
 import { ref } from "vue";
 import HeroIconToggle from "@/components/matches/HeroIconToggle.vue";
+import { EHeroes } from "@/store/heroes";
+import { useI18n } from "vue-i18n-bridge";
 
 export default defineComponent({
   name: "MatchesView",
@@ -66,8 +61,11 @@ export default defineComponent({
     MmrSelect,
     SortSelect,
     HeroIconToggle,
+    HeroSelect,
   },
   setup() {
+    const { t } = useI18n();
+
     const overallStatsStore = useOverallStatsStore();
     const rankingsStore = useRankingStore();
     const matchStore = useMatchStore();
@@ -80,6 +78,7 @@ export default defineComponent({
     const gameMode = computed<EGameMode>(() => matchStore.gameMode);
     const map = computed<string>(() => matchStore.map);
     const mmr = computed<Mmr>(() => matchStore.mmr);
+    const hero = computed<EHeroes>(() => matchStore.selectedHero);
 
     const showHeroIcons = ref<boolean>(true);
 
@@ -168,8 +167,13 @@ export default defineComponent({
     function mmrChanged(mmr: Mmr): void {
       matchStore.setMmr(mmr);
     }
+
     async function selectSeason(season: Season): Promise<void> {
       await matchStore.setSeason(season);
+    }
+
+    async function heroChanged(hero: string): Promise<void> {
+      await matchStore.setSelectedHero(hero);
     }
 
     return {
@@ -187,6 +191,8 @@ export default defineComponent({
       totalMatches,
       onPageChanged,
       showHeroIcons,
+      hero,
+      heroChanged,
     };
   },
 });

@@ -20,6 +20,7 @@ export const useMatchStore = defineStore("match", {
     mmr: { min: 0, max: 3000 } as Mmr,
     sort: "startTimeDescending",
     selectedSeason: {} as Season,
+    selectedHero: "All Heroes",
   }),
   actions: {
     async loadMatches() {
@@ -50,6 +51,7 @@ export const useMatchStore = defineStore("match", {
           this.map,
           this.mmr,
           this.selectedSeason.id,
+          this.selectedHero,
         );
       }
       this.SET_TOTAL_MATCHES(response.count);
@@ -109,6 +111,13 @@ export const useMatchStore = defineStore("match", {
     async setPlayerScores(playerScores: PlayerScore[]) {
       this.SET_PLAYER_SCORES(playerScores);
     },
+
+    async setSelectedHero(hero: string) {
+      this.SET_SELECTED_HERO(hero);
+      this.SET_PAGE(1);
+      await this.loadMatches();
+    },
+
     SET_PAGE(page: number): void {
       this.page = page;
     },
@@ -147,6 +156,9 @@ export const useMatchStore = defineStore("match", {
     },
     SET_SEASON(season: Season): void {
       this.selectedSeason = season;
+    },
+    SET_SELECTED_HERO(hero: string): void {
+      this.selectedHero = hero;
     },
   },
 });
